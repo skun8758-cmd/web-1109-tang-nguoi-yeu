@@ -77,13 +77,11 @@
             height: auto;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            
-            /* Hiệu ứng bay qua lại đung đưa (4 giây lặp lại vô tận) */
+            /* Hiệu ứng chuyển động đung đưa bay qua lại */
             animation: swingFly 4s ease-in-out infinite;
             transition: transform 0.3s;
         }
         .flower-img:hover { 
-            /* Phóng to nhẹ khi rê chuột hoặc chạm vào */
             transform: scale(1.05); 
         }
         .flower-hint {
@@ -126,23 +124,13 @@
             cursor: pointer;
         }
 
-        /* Keyframes định nghĩa chuyển động bay đung đưa */
+        /* Keyframes chuyển động đung đưa nhẹ nhàng */
         @keyframes swingFly {
-            0% {
-                transform: translate(0, 0) rotate(0deg);
-            }
-            25% {
-                transform: translate(-10px, -5px) rotate(-3deg);
-            }
-            50% {
-                transform: translate(0, -10px) rotate(0deg);
-            }
-            75% {
-                transform: translate(10px, -5px) rotate(3deg);
-            }
-            100% {
-                transform: translate(0, 0) rotate(0deg);
-            }
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(-10px, -5px) rotate(-3deg); }
+            50% { transform: translate(0, -10px) rotate(0deg); }
+            75% { transform: translate(10px, -5px) rotate(3deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
         }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -151,8 +139,8 @@
 </head>
 <body>
 
-    <!-- Thẻ phát nhạc ẩn (file nhạc đặt trong thư mục static) -->
-    <audio id="bgMusic" src="{{ url_for('static', filename='music.mp3') }}" loop></audio>
+    <!-- File nhạc đặt cùng thư mục với index.html -->
+    <audio id="bgMusic" src="music.mp3" loop></audio>
 
     <!-- Màn hình 1: Nhập Passcode -->
     <div class="card" id="passCard">
@@ -181,23 +169,23 @@
 
     <!-- Màn hình 2: Bó Hoa / Ảnh kỷ niệm -->
     <div class="flower-screen" id="flowerScreen" onclick="showModal()">
-        <!-- Load hình ảnh từ thư mục static -->
-        <img src="{{ url_for('static', filename='ky_niem.jpg') }}" alt="Kỷ niệm hai ta" class="flower-img">
+        <!-- Ảnh đặt cùng thư mục với index.html -->
+        <img src="ky_niem.jpg" alt="Kỷ niệm hai ta" class="flower-img">
         <div class="flower-hint">Chạm vào ảnh nhé 🌷</div>
     </div>
 
-    <!-- Màn hình 3: Lời Chúc -->
+    <!-- Màn hình 3: Khung Lời chúc -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-box">
-            <h3 id="modalTitle"></h3>
-            <p id="modalMsg"></p>
+            <h3>Chào Kiều Mi của anh 💖</h3>
+            <p>"Ngày 20/10 này, anh chúc em luôn rực rỡ, bình an và mỉm cười thật nhiều. Mọi điều tốt đẹp nhất trên đời này em đều hoàn toàn xứng đáng nhận được. Anh sẽ luôn ở bên cạnh em!"</p>
             <button class="close-btn" onclick="closeModal()">Đóng</button>
         </div>
     </div>
 
     <script>
         let currentPass = "";
-        let greetingData = {};
+        const CORRECT_PASS = "2010"; // Đặt mật khẩu tại đây
 
         function id(name) { return document.getElementById(name); }
 
@@ -224,40 +212,25 @@
         }
 
         function verifyPasscode() {
-            fetch('/kiem-tra-pass', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ passcode: currentPass })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    greetingData = data;
-                    id('passCard').style.display = 'none';
-                    id('flowerScreen').style.display = 'flex';
-                    
-                    // Tự động phát nhạc khi nhập pass đúng
-                    playMusic();
-                } else {
-                    alert(data.message);
-                    currentPass = "";
-                    updateDots();
-                }
-            });
+            if (currentPass === CORRECT_PASS) {
+                id('passCard').style.display = 'none';
+                id('flowerScreen').style.display = 'flex';
+                playMusic();
+            } else {
+                alert("Sai mật khẩu rồi nha!");
+                currentPass = "";
+                updateDots();
+            }
         }
 
         function playMusic() {
             let music = id('bgMusic');
             if (music) {
-                music.play().catch(error => {
-                    console.log("Trình duyệt chặn tự động phát nhạc:", error);
-                });
+                music.play().catch(e => console.log("Lỗi phát nhạc:", e));
             }
         }
 
         function showModal() {
-            id('modalTitle').innerText = greetingData.tieu_de;
-            id('modalMsg').innerText = greetingData.loi_chuc;
             id('modalOverlay').style.display = 'flex';
         }
 
